@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Deci</title>
+<style>
+  :root{
+    --bg:#0f1117; --card:#1a1d28; --card2:#222634; --line:#2b3040;
+    --txt:#eef0f6; --muted:#8b91a5; --accent:#6c8cff; --accent2:#48d0a8;
+    --gold:#ffce5c; --danger:#ff6b6b; --radius:18px;
+  }
+  body.light{
+    --bg:#f4f5f8; --card:#ffffff; --card2:#eef0f5; --line:#dde1ea;
+    --txt:#1a1d28; --muted:#6b7180; --accent:#3a5cff; --accent2:#1aa67e;
+    --gold:#e0a200; --danger:#e23b3b;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--txt);
+    display:flex; justify-content:center;
+  }
+  #phone{
+    width:100%; max-width:440px; min-height:100vh; background:var(--bg);
+    position:relative; display:flex; flex-direction:column; overflow:hidden;
+  }
+  header.bar{
+    padding:18px 20px 12px; display:flex; align-items:center; gap:12px;
+    position:sticky; top:0; background:linear-gradient(180deg,var(--bg) 70%,transparent); z-index:5;
+  }
+  header.bar h1{font-size:22px; margin:0; font-weight:700; letter-spacing:-.3px;}
+  header.bar .sub{font-size:13px; color:var(--muted); margin-top:2px;}
+  .back{font-size:15px; color:var(--accent); background:none; border:none; padding:0; cursor:pointer; font-weight:600;}
+  .spacer{flex:1;}
+  main{flex:1; padding:4px 16px 110px; overflow-y:auto;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:12px; cursor:pointer; transition:.15s;}
+  .card:active{transform:scale(.98);}
+  .card .row{display:flex; align-items:center; gap:14px;}
+  .emoji{font-size:30px; width:48px; height:48px; border-radius:14px; background:var(--card2); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .card .name{font-size:17px; font-weight:600;}
+  .card .meta{font-size:13px; color:var(--muted); margin-top:2px;}
+  .chev{color:var(--muted); font-size:20px;}
+  .empty{text-align:center; color:var(--muted); padding:60px 24px; font-size:15px; line-height:1.5;}
+  .empty .big{font-size:46px; margin-bottom:10px;}
+  .fab{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    max-width:408px; width:calc(100% - 32px);
+    background:var(--accent); color:#fff; border:none; border-radius:16px;
+    padding:16px; font-size:16px; font-weight:700; cursor:pointer; z-index:6;
+    box-shadow:0 8px 28px rgba(108,140,255,.4);
+  }
+  .fab:active{transform:translateX(-50%) scale(.98);}
+  .fab.green{background:var(--accent2); box-shadow:0 8px 28px rgba(72,208,168,.4);}
+  .hero{height:20vh; min-height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; margin-bottom:8px;}
+  .hero h1{font-size:58px; font-weight:800; letter-spacing:-1.5px; margin:0; line-height:1;}
+  .hero .sub{font-size:15px; color:var(--muted); margin-top:10px;}
+  .homebar{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); max-width:408px; width:calc(100% - 32px); display:flex; gap:10px; z-index:6;}
+  .homebar button:active{transform:scale(.98);}
+  .fab-inline{flex:1; background:var(--accent); color:#fff; border:none; border-radius:16px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; box-shadow:0 8px 28px rgba(108,140,255,.4);}
+  .fab-gear{width:58px; flex-shrink:0; background:var(--card); color:var(--txt); border:1px solid var(--line); border-radius:16px; font-size:22px; cursor:pointer;}
+  /* sections */
+  .sec-title{font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:18px 4px 8px; font-weight:700;}
+  .pill{display:inline-flex; align-items:center; gap:6px; background:var(--card2); border:1px solid var(--line); border-radius:999px; padding:7px 12px; font-size:13px; margin:0 6px 8px 0;}
+  .pill .dir{font-size:11px; color:var(--muted);}
+  /* trait chips selectable */
+  .chips{display:flex; flex-wrap:wrap; gap:10px;}
+  .chip{
+    flex:1 1 calc(50% - 5px); background:var(--card); border:1.5px solid var(--line);
+    border-radius:14px; padding:16px 14px; cursor:pointer; transition:.15s; text-align:left;
+    color:var(--txt); font-family:inherit;
+  }
+  .chip:active{transform:scale(.97);}
+  .chip .ct{font-size:16px; font-weight:700;}
+  .chip .cd{font-size:12px; color:var(--muted); margin-top:3px;}
+  /* option list inside decision */
+  .optrow{display:flex; align-items:center; gap:12px; padding:14px; background:var(--card); border:1px solid var(--line); border-radius:14px; margin-bottom:10px;}
+  .optrow .on{font-weight:600; font-size:16px;}
+  .optrow .ov{font-size:12px; color:var(--muted); margin-top:3px;}
+  .iconbtn{background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:6px;}
+  /* result */
+  .winner{background:linear-gradient(145deg,#2a2f44,#1c2030); border:1.5px solid var(--accent); border-radius:22px; padding:26px; text-align:center; margin-bottom:16px;}
+  .winner .crown{font-size:40px;}
+  .winner .wn{font-size:28px; font-weight:800; margin:8px 0 4px; letter-spacing:-.5px;}
+  .winner .ws{font-size:14px; color:var(--accent2); font-weight:600;}
+  .runner{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; text-align:center;}
+  .runner .label{font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); font-weight:700;}
+  .runner .rn{font-size:20px; font-weight:700; margin-top:4px;}
+  .runner .rs{font-size:13px; color:var(--muted); margin-top:2px;}
+  /* modal */
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:flex-end; justify-content:center; z-index:20;}
+  .overlay.show{display:flex;}
+  .sheet{background:var(--card); width:100%; max-width:440px; border-radius:24px 24px 0 0; padding:22px 20px calc(22px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto;}
+  .sheet h2{margin:0 0 16px; font-size:20px;}
+  label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px; font-weight:600;}
+  input[type=text], input[type=number], select{
+    width:100%; background:var(--card2); border:1px solid var(--line); color:var(--txt);
+    border-radius:12px; padding:13px 14px; font-size:16px; outline:none;
+  }
+  input:focus,select:focus{border-color:var(--accent);}
+  textarea{width:100%; background:var(--card2); border:1px solid var(--line); color:var(--txt); border-radius:12px; padding:13px 14px; font-size:16px; outline:none; resize:none; font-family:inherit; min-height:68px;}
+  textarea:focus{border-color:var(--accent);}
+  .note{background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:14px 16px; font-size:14px; line-height:1.5; color:var(--txt); margin-bottom:14px;}
+  .emojipick{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
+  .emojipick span{font-size:24px; width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:var(--card2); border:1.5px solid transparent; cursor:pointer;}
+  .emojipick span.sel{border-color:var(--accent); background:#2a3050;}
+  .seg{display:flex; background:var(--card2); border-radius:12px; padding:4px; gap:4px;}
+  .seg button{flex:1; background:none; border:none; color:var(--muted); padding:10px; border-radius:9px; font-size:14px; font-weight:600; cursor:pointer;}
+  .seg button.active{background:var(--accent); color:#fff;}
+  .btn{width:100%; background:var(--accent); color:#fff; border:none; border-radius:14px; padding:15px; font-size:16px; font-weight:700; cursor:pointer; margin-top:18px;}
+  .btn.ghost{background:var(--card2); color:var(--txt);}
+  .btn.danger{background:transparent; color:var(--danger); margin-top:8px;}
+  .traitval{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .traitval .tn{flex:1; font-size:15px; font-weight:600;}
+  .traitval .tn small{display:block; color:var(--muted); font-weight:400; font-size:11px;}
+  .traitval input{width:84px; text-align:center;}
+  .addtrait{display:flex; gap:8px; align-items:flex-end;}
+  .addtrait > div{flex:1;}
+  .mini{padding:13px 16px; font-size:14px; font-weight:700; border-radius:12px; background:var(--card2); border:1px solid var(--line); color:var(--accent); cursor:pointer; white-space:nowrap;}
+  .traitlist{margin-top:6px;}
+  .traitlist .tr{display:flex; align-items:center; gap:8px; background:var(--card2); border-radius:10px; padding:10px 12px; margin-bottom:8px;}
+  .traitlist .tr .nm{flex:1; font-weight:600;}
+  .traitlist .tr .dr{font-size:12px; color:var(--muted);}
+  .hint{font-size:12px; color:var(--muted); margin-top:6px; line-height:1.4;}
+  /* chosen sequence */
+  .notif{
+    position:fixed; top:0; left:50%; transform:translateX(-50%);
+    max-width:440px; width:100%; background:var(--accent2); color:#06251c;
+    font-weight:700; font-size:16px; padding:calc(15px + env(safe-area-inset-top)) 20px 15px;
+    text-align:center; z-index:40; box-shadow:0 8px 24px rgba(72,208,168,.45);
+    animation:notifIn .42s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .notif.hide{animation:notifOut .42s ease forwards;}
+  @keyframes notifIn{from{transform:translateX(-50%) translateY(-110%);}to{transform:translateX(-50%) translateY(0);}}
+  @keyframes notifOut{from{transform:translateX(-50%) translateY(0);opacity:1;}to{transform:translateX(-50%) translateY(-110%);opacity:0;}}
+  .doneQuote{
+    text-align:center; font-size:23px; font-weight:700; line-height:1.45; color:var(--txt);
+    margin:130px 22px 0; opacity:0; transform:translateY(12px) scale(.97);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .doneQuote.show{opacity:1; transform:translateY(0) scale(1);}
+  .typedNotes{margin:24px 26px 0; text-align:center; min-height:26px;}
+  .typedLine{font-size:15px; line-height:1.7; color:var(--muted); white-space:pre-wrap;}
+  .typedNotes.fallback .typedLine{font-style:italic; opacity:.85;}
+  .typedLine.typing::after{content:"▌"; color:var(--accent2); margin-left:1px; animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+  .backBtn{display:block; max-width:360px; margin:30px auto 0; opacity:0; pointer-events:none; transition:opacity .7s ease;}
+  .backBtn.show{opacity:1; pointer-events:auto;}
+  /* export checkboxes + import */
+  .cbox{width:26px; height:26px; border-radius:8px; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; font-weight:800; flex-shrink:0;}
+  .cbox.on{background:var(--accent); border-color:var(--accent);}
+  input[type=file]{width:100%; color:var(--txt); font-size:14px; margin-top:6px;}
+  input[type=file]::file-selector-button{background:var(--accent); color:#fff; border:none; border-radius:10px; padding:10px 14px; font-size:14px; font-weight:700; margin-right:12px; cursor:pointer;}
+</style>
+</head>
+<body>
+<div id="phone">
+  <header class="bar" id="bar"></header>
+  <main id="view"></main>
+</div>
+
+<!-- generic sheet -->
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+
+<script>
+"use strict";
+/* ---------- storage ---------- */
+const KEY="deci.v1";
+let DB={decisions:[]};
+try{const raw=localStorage.getItem(KEY); if(raw) DB=JSON.parse(raw);}catch(e){}
+function save(){localStorage.setItem(KEY,JSON.stringify(DB));}
+const uid=()=>Math.random().toString(36).slice(2,9);
+let theme=localStorage.getItem("deci.theme")||"dark";
+function applyTheme(){ document.body.classList.toggle("light", theme==="light"); }
+let exportSel=new Set();
+
+const DEFAULT_TRAITS=[
+  {name:"Price", dir:"low"},
+  {name:"Time", dir:"low"},
+  {name:"Enjoyment", dir:"high"},
+  {name:"Health", dir:"high"},
+];
+const EMOJIS=["🍽️","🎬","✈️","👕","🎮","📚","☕","🏋️","🎵","🛒","💼","🐶","🏠","💡","🎁","🚗"];
+
+/* ---------- routing ---------- */
+let route={name:"home"};
+function go(r){route=r; render();}
+
+/* ---------- helpers ---------- */
+function findDecision(id){return DB.decisions.find(d=>d.id===id);}
+function el(html){const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstElementChild;}
+
+/* score: returns sorted options best-first for a given trait */
+function rank(decision, trait){
+  const scored=decision.options
+    .map(o=>({o, v:o.values[trait.id]}))
+    .filter(x=>x.v!==undefined && x.v!==null && x.v!=="");
+  scored.sort((a,b)=> trait.dir==="high" ? b.v-a.v : a.v-b.v);
+  return scored;
+}
+
+/* usage counting for "Been a while" */
+const getUses=o=>o.uses||0;
+function totalUses(decision){return decision.options.reduce((s,o)=>s+getUses(o),0);}
+/* options lagging behind the highest count (not tied with the top), lowest
+   first; ties keep original list order so the highest such option is primary.
+   Returns up to two. Empty once every option is recommended equally. */
+function recencyPick(decision){
+  const counts=decision.options.map(getUses);
+  const maxC=counts.length?Math.max(...counts):0;
+  return decision.options.map((o,i)=>({o,i,u:getUses(o)}))
+    .filter(x=>x.u<maxC)
+    .sort((a,b)=> a.u-b.u || a.i-b.i)
+    .slice(0,2).map(x=>x.o);
+}
+
+/* ---------- render ---------- */
+function render(){
+  const bar=document.getElementById("bar");
+  const view=document.getElementById("view");
+  bar.innerHTML=""; view.innerHTML=""; bar.style.display="flex";
+  removeFab();
+  if(route.name==="home") return renderHome(bar,view);
+  if(route.name==="decision") return renderDecision(bar,view);
+  if(route.name==="result") return renderResult(bar,view);
+  if(route.name==="chosen") return renderChosen(bar,view);
+  if(route.name==="settings") return renderSettings(bar,view);
+  if(route.name==="export") return renderExport(bar,view);
+  if(route.name==="import") return renderImport(bar,view);
+}
+
+function header(bar,{title,sub,back}){
+  if(back){const b=el(`<button class="back">‹ Back</button>`); b.onclick=back; bar.appendChild(b);}
+  const wrap=el(`<div><h1>${title}</h1>${sub?`<div class="sub">${sub}</div>`:""}</div>`);
+  bar.appendChild(wrap);
+}
+
+/* ===== HOME ===== */
+function renderHome(bar,view){
+  bar.style.display="none";
+  view.appendChild(el(`<div class="hero"><h1>Deci</h1><div class="sub">Your decisions made simple</div></div>`));
+  if(DB.decisions.length===0){
+    view.appendChild(el(`<div class="empty"><div class="big">🤔</div>No decisions yet.<br>Create one like “What to eat” and add your options.</div>`));
+  }else{
+    DB.decisions.forEach(d=>{
+      const card=el(`<div class="card"><div class="row">
+        <div class="emoji">${d.icon}</div>
+        <div style="flex:1"><div class="name">${esc(d.name)}</div>
+        <div class="meta">${d.options.length} option${d.options.length!==1?"s":""} · ${d.traits.length} traits</div></div>
+        <div class="chev">›</div></div></div>`);
+      card.onclick=()=>go({name:"decision", id:d.id});
+      view.appendChild(card);
+    });
+  }
+  const bottom=el(`<div class="homebar" id="fab"></div>`);
+  const newb=el(`<button class="fab-inline">+ New decision</button>`);
+  newb.onclick=()=>openDecisionSheet();
+  const gear=el(`<button class="fab-gear" title="Settings">⚙️</button>`);
+  gear.onclick=()=>go({name:"settings"});
+  bottom.appendChild(newb); bottom.appendChild(gear);
+  document.body.appendChild(bottom);
+}
+
+/* ===== DECISION DETAIL ===== */
+function renderDecision(bar,view){
+  const d=findDecision(route.id); if(!d) return go({name:"home"});
+  view.scrollTop=0;
+  const leave=()=>{ if(d.options.length===0) confirmLeaveNoOptions(d); else go({name:"home"}); };
+  header(bar,{title:`${d.icon} ${esc(d.name)}`, back:leave});
+  const edit=el(`<button class="back" style="margin-left:auto">Edit</button>`);
+  edit.onclick=()=>openDecisionSheet(d);
+  bar.appendChild(edit);
+
+  // traits summary
+  view.appendChild(el(`<div class="sec-title">Traits</div>`));
+  const traitWrap=el(`<div></div>`);
+  d.traits.forEach(t=>{
+    traitWrap.appendChild(el(`<span class="pill">${esc(t.name)} <span class="dir">${t.dir==="high"?"↑ higher wins":"↓ lower wins"}</span></span>`));
+  });
+  view.appendChild(traitWrap);
+
+  // options
+  view.appendChild(el(`<div class="sec-title">Options (${d.options.length})</div>`));
+  if(d.options.length===0){
+    view.appendChild(el(`<div class="empty" style="padding:30px">No options yet. Add a few to choose between.</div>`));
+  }
+  d.options.forEach(o=>{
+    const vals=d.traits.map(t=>`${esc(t.name)}: ${o.values[t.id]??"—"}`).join("  ·  ");
+    const row=el(`<div class="optrow"><div style="flex:1"><div class="on">${esc(o.name)}</div><div class="ov">${vals}</div><div class="ov" style="color:var(--accent2)">Chosen ${getUses(o)}×</div></div>
+      <button class="iconbtn" data-act="edit">✏️</button><button class="iconbtn" data-act="del">🗑</button></div>`);
+    row.querySelector('[data-act=edit]').onclick=()=>openOptionSheet(d,o);
+    row.querySelector('[data-act=del]').onclick=()=>{ if(confirm(`Delete "${o.name}"?`)){ d.options=d.options.filter(x=>x.id!==o.id); save(); render(); } };
+    view.appendChild(row);
+  });
+  const add=el(`<button class="btn ghost" style="margin-top:6px">+ Add option</button>`);
+  add.onclick=()=>openOptionSheet(d);
+  view.appendChild(add);
+
+  if(d.options.length>0 && d.traits.length>0){
+    fab("Decide →", ()=>go({name:"decideSelect", id:d.id}), true);
+  }
+  // we render decide-trait selection inline as a step
+  if(route.step==="trait"){ renderTraitSelect(view,d); }
+}
+
+/* trait selection appears as a sheet for cleanliness */
+function renderTraitSelect(){}
+
+/* When FAB "Decide" pressed -> show trait picker sheet */
+function go_decide(d){
+  const body=el(`<div><h2>Filter by which trait?</h2><div class="hint">We'll show the option that scores best on the trait you pick, plus a runner-up.</div><div class="chips" style="margin-top:14px"></div></div>`);
+  const chips=body.querySelector(".chips");
+  d.traits.forEach(t=>{
+    const c=el(`<button class="chip"><div class="ct">${esc(t.name)}</div><div class="cd">${t.dir==="high"?"Highest wins":"Lowest wins"}</div></button>`);
+    c.onclick=()=>{ closeSheet(); go({name:"result", id:d.id, traitId:t.id}); };
+    chips.appendChild(c);
+  });
+  // "Been a while" — surfaces the options lagging behind the most-recommended ones
+  const counts=d.options.map(getUses);
+  const maxC=counts.length?Math.max(...counts):0;
+  const hasLag=counts.some(c=>c<maxC);
+  let reason="";
+  if(d.options.length<=2) reason="Needs more than two options to use this.";
+  else if(totalUses(d)<2) reason="Unlocks once you've chosen options twice — keep deciding to build up history.";
+  else if(!hasLag) reason="Every option's been chosen equally — nothing's overdue.";
+  const enabled=!reason;
+  const bw=el(`<button class="btn" style="margin-top:16px; background:var(--gold); color:#1a1d28; ${enabled?"":"opacity:.4; cursor:not-allowed;"}">🌶️ Spice things up</button>`);
+  const note=el(`<div class="hint" style="text-align:center; margin-top:8px">${enabled?"Surfaces the options lagging behind your most-used ones — handy for clearing out stale ones.":reason}</div>`);
+  if(enabled){
+    bw.onclick=()=>{
+      const picks=recencyPick(d);
+      const primary=picks[0], runner=picks[1];
+      closeSheet();
+      go({name:"result", id:d.id, mode:"recency", primaryId:primary?primary.id:null, runnerId:runner?runner.id:null});
+    };
+  }
+  body.appendChild(bw); body.appendChild(note);
+  openSheet(body);
+}
+
+/* ===== RESULT ===== */
+function winnerCard(o, sub){
+  return el(`<div class="winner"><div class="crown">👑</div><div class="wn">${esc(o.name)}</div><div class="ws">${sub}</div></div>`);
+}
+function runnerCard(o, sub){
+  return el(`<div class="runner"><div class="label">Runner-up</div><div class="rn">${esc(o.name)}</div><div class="rs">${sub}</div></div>`);
+}
+function deleteRow(d,o){
+  const b=el(`<button class="btn danger" style="margin:8px 0 12px">🗑 Delete “${esc(o.name)}”</button>`);
+  b.onclick=()=>{ if(confirm(`Delete "${o.name}"? This removes it from ${d.name} for good.`)){ d.options=d.options.filter(x=>x.id!==o.id); save(); go({name:"decision", id:d.id}); } };
+  return b;
+}
+/* mark one option as chosen — only this option's count goes up */
+function choose(d,o){ o.uses=getUses(o)+1; save(); go({name:"chosen", id:d.id, optionId:o.id}); }
+function makeChoosable(card,d,o){ card.style.cursor="pointer"; card.onclick=()=>choose(d,o); return card; }
+
+function renderResult(bar,view){
+  const d=findDecision(route.id); if(!d) return go({name:"home"});
+  const tapHint=el(`<div class="hint" style="text-align:center; margin-bottom:10px">Tap the one you went with to log it as chosen.</div>`);
+
+  // "Been a while" recency mode — primary & runner are the least-chosen laggards
+  if(route.mode==="recency"){
+    header(bar,{title:"🌶️ Spice things up", sub:"It's been a while since you used these options, you sure you still need them?", back:()=>go({name:"decision", id:d.id})});
+    const primary=d.options.find(o=>o.id===route.primaryId);
+    const runner=d.options.find(o=>o.id===route.runnerId);
+    if(!primary){ view.appendChild(el(`<div class="empty">Nothing to suggest.</div>`)); return; }
+    view.appendChild(tapHint);
+    view.appendChild(makeChoosable(winnerCard(primary, `Chosen ${getUses(primary)}×`), d, primary));
+    view.appendChild(deleteRow(d, primary));
+    if(runner){
+      view.appendChild(makeChoosable(runnerCard(runner, `Chosen ${getUses(runner)}×`), d, runner));
+      view.appendChild(deleteRow(d, runner));
+    }
+    return;
+  }
+
+  // trait filter mode
+  const t=d.traits.find(x=>x.id===route.traitId);
+  if(!t) return go({name:"decision", id:d.id});
+  header(bar,{title:"Your pick", sub:`By ${esc(t.name)} (${t.dir==="high"?"highest":"lowest"} wins)`, back:()=>go({name:"decision", id:d.id})});
+  const ranked=rank(d,t);
+  if(ranked.length===0){
+    view.appendChild(el(`<div class="empty">No options have a value for “${esc(t.name)}”. Add values first.</div>`));
+    return;
+  }
+  view.appendChild(tapHint);
+  const w=ranked[0];
+  view.appendChild(makeChoosable(winnerCard(w.o, `${esc(t.name)}: ${w.v} · chosen ${getUses(w.o)}×`), d, w.o));
+  if(ranked[1]){
+    view.appendChild(makeChoosable(runnerCard(ranked[1].o, `${esc(t.name)}: ${ranked[1].v} · chosen ${getUses(ranked[1].o)}×`), d, ranked[1].o));
+  }else{
+    view.appendChild(el(`<div class="runner"><div class="rs">No runner-up — only one option scored.</div></div>`));
+  }
+}
+
+/* ===== CHOSEN — animated send-off (merges confirmation + send-off) ===== */
+function typeLines(container, lines, done){
+  let li=0;
+  (function nextLine(){
+    if(li>=lines.length){ done&&done(); return; }
+    const text=lines[li++];
+    const lineEl=document.createElement("div");
+    lineEl.className="typedLine typing";
+    container.appendChild(lineEl);
+    let ci=0;
+    (function tick(){
+      lineEl.textContent=text.slice(0,ci);
+      if(ci++<=text.length){ setTimeout(tick, 34); }
+      else { lineEl.classList.remove("typing"); setTimeout(nextLine, 380); }
+    })();
+  })();
+}
+
+function renderChosen(bar,view){
+  const d=findDecision(route.id); if(!d) return go({name:"home"});
+  const o=d.options.find(x=>x.id===route.optionId); if(!o) return go({name:"decision", id:d.id});
+  // no header — clean send-off
+
+  // 1) green notification bar
+  const notif=el(`<div class="notif">✅ ${esc(o.name)} · Chosen</div>`);
+  view.appendChild(notif);
+
+  // 2) quote (revealed after the bar leaves)
+  const quote=el(`<div class="doneQuote">“Great, now you just gotta do it”</div>`);
+  view.appendChild(quote);
+
+  // 3) notes typed line by line
+  const notesWrap=el(`<div class="typedNotes"></div>`);
+  view.appendChild(notesWrap);
+
+  // 4) back button (fades in last)
+  const btn=el(`<button class="btn ghost backBtn">Back to decisions</button>`);
+  btn.onclick=()=>go({name:"home"});
+  view.appendChild(btn);
+
+  let lines = o.note ? o.note.split(/\r?\n/).filter(s=>s.trim().length) : [];
+  if(!lines.length){ lines=["you didn't include any notes for this one"]; notesWrap.classList.add("fallback"); }
+  const reveal=()=>btn.classList.add("show");
+
+  setTimeout(()=>notif.classList.add("hide"), 2000);   // bar gone at ~2s
+  setTimeout(()=>quote.classList.add("show"), 2400);   // quote pops in
+  setTimeout(()=>typeLines(notesWrap, lines, ()=>setTimeout(reveal, 3000)), 3300);
+}
+
+/* ===== SETTINGS ===== */
+function renderSettings(bar,view){
+  header(bar,{title:"Settings", back:()=>go({name:"home"})});
+  const item=(icon,name,meta,onclick,chev="›")=>{
+    const c=el(`<div class="card"><div class="row"><div class="emoji">${icon}</div><div style="flex:1"><div class="name">${name}</div><div class="meta">${meta}</div></div><div class="chev">${chev}</div></div></div>`);
+    c.onclick=onclick; return c;
+  };
+  view.appendChild(item("📤","Export","Save selected decisions to a text file",()=>go({name:"export"})));
+  view.appendChild(item("📥","Import","Load decisions from an exported file",()=>go({name:"import"})));
+  view.appendChild(item(theme==="light"?"☀️":"🌙", theme==="light"?"Light mode":"Dark mode","Tap to switch appearance",()=>{
+    theme=theme==="light"?"dark":"light"; localStorage.setItem("deci.theme",theme); applyTheme(); render();
+  },"⇄"));
+  const home=el(`<button class="btn ghost" style="margin-top:8px">Back to home</button>`);
+  home.onclick=()=>go({name:"home"});
+  view.appendChild(home);
+}
+
+/* ===== EXPORT ===== */
+const dirWord=dir=>dir==="low"?"ascending":"descending";
+function buildExportText(ids){
+  const out=[]; let dn=0;
+  ids.forEach(id=>{
+    const d=findDecision(id); if(!d) return;
+    out.push(`Decision ${++dn}:`);
+    out.push(`${d.name}:`);
+    out.push("", "Traits:", "");
+    d.traits.forEach((t,i)=> out.push(`${i+1}. ${t.name}, ${dirWord(t.dir)}`));
+    out.push("");
+    d.options.forEach((o,oi)=>{
+      out.push(`Option ${oi+1}:`);
+      out.push(`Name: ${o.name}`);
+      d.traits.forEach(t=> out.push(`${t.name}: ${o.values[t.id]??""}`));
+      out.push(`Count: ${getUses(o)}`);
+      out.push("Notes:");
+      out.push(o.note||"");
+      out.push("");
+    });
+    out.push("");
+  });
+  return out.join("\n").replace(/\n{3,}/g,"\n\n").trim()+"\n";
+}
+function doExport(ids){
+  const blob=new Blob([buildExportText(ids)],{type:"text/plain"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="deci-export.txt";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function renderExport(bar,view){
+  header(bar,{title:"Export", sub:"Select decisions to include", back:()=>go({name:"settings"})});
+  if(!route.inited){ route.inited=true; exportSel=new Set(); }
+  if(DB.decisions.length===0){ view.appendChild(el(`<div class="empty">No decisions to export.</div>`)); return; }
+  DB.decisions.forEach(d=>{
+    const on=exportSel.has(d.id);
+    const row=el(`<div class="optrow" style="cursor:pointer"><div class="cbox ${on?'on':''}">${on?'✓':''}</div>
+      <div style="flex:1"><div class="on">${d.icon} ${esc(d.name)}</div><div class="ov">${d.options.length} option${d.options.length!==1?'s':''} · ${d.traits.length} traits</div></div></div>`);
+    row.onclick=()=>{ if(exportSel.has(d.id)) exportSel.delete(d.id); else exportSel.add(d.id); render(); };
+    view.appendChild(row);
+  });
+  const n=exportSel.size;
+  const btn=el(`<button class="fab" id="fab" style="${n?'':'opacity:.45; pointer-events:none;'}">⬇ Export ${n} selected</button>`);
+  if(n) btn.onclick=()=>doExport([...exportSel]);
+  document.body.appendChild(btn);
+}
+
+/* ===== IMPORT ===== */
+function parseImport(text){
+  const lines=text.split(/\r?\n/);
+  const decisions=[]; let cur=null, opt=null, mode=null, expectName=false; let m;
+  const finishNote=()=>{ if(opt && opt._note!==undefined){ opt.note=opt._note.join("\n").trim(); delete opt._note; } };
+  for(const raw of lines){
+    const line=raw.trim();
+    if(/^Decision\s+\d+:\s*$/i.test(line)){ finishNote(); opt=null; mode=null; cur={id:uid(),name:"",icon:"📋",traits:[],options:[]}; decisions.push(cur); expectName=true; continue; }
+    if(!cur) continue;
+    if(expectName){ if(line==="") continue; cur.name=line.replace(/:\s*$/,""); expectName=false; continue; }
+    if(/^Traits:\s*$/i.test(line)){ finishNote(); mode="traits"; continue; }
+    if((m=line.match(/^\d+\.\s*(.+),\s*(ascending|descending)\s*$/i))){ finishNote(); cur.traits.push({id:uid(), name:m[1].trim(), dir:/ascending/i.test(m[2])?"low":"high"}); continue; }
+    if(/^Option\s+\d+:\s*$/i.test(line)){ finishNote(); opt={id:uid(), name:"", values:{}, uses:0}; cur.options.push(opt); mode="option"; continue; }
+    if(opt){
+      if(mode==="notes"){
+        if(line===""){ finishNote(); mode="option"; continue; }
+        opt._note.push(raw); continue;
+      }
+      if((m=line.match(/^Name:\s*(.*)$/i))){ opt.name=m[1].trim(); continue; }
+      if((m=line.match(/^Count:\s*(\d+)\s*$/i))){ opt.uses=parseInt(m[1],10)||0; continue; }
+      if(/^Notes:\s*$/i.test(line)){ mode="notes"; opt._note=[]; continue; }
+      if((m=line.match(/^(.+?):\s*(.*)$/))){
+        const t=cur.traits.find(x=>x.name.toLowerCase()===m[1].trim().toLowerCase());
+        if(t){ const v=m[2].trim(); if(v!=="" && !isNaN(parseFloat(v))) opt.values[t.id]=parseFloat(v); }
+      }
+    }
+  }
+  finishNote();
+  return decisions.filter(d=>d.name);
+}
+function renderImport(bar,view){
+  header(bar,{title:"Import", sub:"Load a previously exported file", back:()=>go({name:"settings"})});
+  const card=el(`<div class="card" style="cursor:default"><label style="margin-top:0">Choose a .txt file exported from Deci</label><input type="file" id="impfile" accept=".txt,text/plain"></div>`);
+  view.appendChild(card);
+  const status=el(`<div class="hint" id="impstatus" style="margin-top:12px"></div>`);
+  view.appendChild(status);
+  card.querySelector("#impfile").addEventListener("change", e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      let parsed;
+      try{ parsed=parseImport(r.result); }catch(err){ status.textContent="Couldn't read that file."; return; }
+      if(!parsed.length){ status.textContent="No decisions found in that file."; return; }
+      parsed.forEach(d=>DB.decisions.push(d)); save();
+      status.style.color="var(--accent2)";
+      status.textContent=`Imported ${parsed.length} decision${parsed.length!==1?"s":""}. Returning home…`;
+      setTimeout(()=>go({name:"home"}), 1200);
+    };
+    r.readAsText(f);
+  });
+}
+
+/* ===== SHEETS ===== */
+function openSheet(node){
+  const sheet=document.getElementById("sheet");
+  sheet.innerHTML=""; sheet.appendChild(node);
+  sheet.scrollTop=0;
+  document.getElementById("overlay").classList.add("show");
+}
+function closeSheet(){document.getElementById("overlay").classList.remove("show");}
+document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") closeSheet(); });
+
+/* prompt shown when leaving a decision that still has no options */
+function confirmLeaveNoOptions(d){
+  const body=el(`<div><h2>Hold on</h2>
+    <div style="font-size:15px; color:var(--txt); line-height:1.5; margin-bottom:4px">You didn't add any options, maybe you forgot?</div>
+    <button class="btn" id="cont">Continue editing</button>
+    <button class="btn danger" id="rem">Remove decision</button></div>`);
+  body.querySelector("#cont").onclick=()=>closeSheet();
+  body.querySelector("#rem").onclick=()=>{ DB.decisions=DB.decisions.filter(x=>x.id!==d.id); save(); closeSheet(); go({name:"home"}); };
+  openSheet(body);
+}
+
+/* create/edit decision */
+function openDecisionSheet(existing){
+  const d=existing||{id:uid(), name:"", icon:"🍽️", traits:DEFAULT_TRAITS.map(t=>({id:uid(),...t})), options:[]};
+  const isNew=!existing;
+  const body=el(`<div>
+    <h2>${isNew?"New decision":"Edit decision"}</h2>
+    <label>Name</label>
+    <input type="text" id="dn" placeholder="e.g. What to eat" value="${esc(d.name)}">
+    <label>Icon</label>
+    <div class="emojipick" id="ep"></div>
+    <label>Traits <small style="font-weight:400">(⇅ flips direction, ✕ removes)</small></label>
+    <div class="traitlist" id="tl"></div>
+    <div style="background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:12px; margin-top:4px;">
+      <input type="text" id="newtrait" placeholder="New trait name…">
+      <div class="seg" id="newdir" style="margin-top:10px">
+        <button data-d="high" class="active">↑ Higher wins</button>
+        <button data-d="low">↓ Lower wins</button>
+      </div>
+      <button class="mini" id="addt" style="width:100%; margin-top:10px; color:#fff; background:var(--accent); border:none;">+ Add trait</button>
+    </div>
+    <div class="hint">Pick the direction when you create the trait: ↑ higher wins (enjoyment), ↓ lower wins (price, time).</div>
+    <button class="btn" id="savedec">${isNew?"Create":"Save"}</button>
+    ${isNew?"":'<button class="btn danger" id="deldec">Delete decision</button>'}
+  </div>`);
+  // emoji picker
+  const ep=body.querySelector("#ep");
+  let icon=d.icon;
+  EMOJIS.forEach(e=>{
+    const s=el(`<span class="${e===icon?'sel':''}">${e}</span>`);
+    s.onclick=()=>{icon=e; ep.querySelectorAll("span").forEach(x=>x.classList.remove("sel")); s.classList.add("sel");};
+    ep.appendChild(s);
+  });
+  // traits (work on a copy)
+  let traits=d.traits.map(t=>({...t}));
+  const tl=body.querySelector("#tl");
+  function drawTraits(){
+    tl.innerHTML="";
+    traits.forEach(t=>{
+      const tr=el(`<div class="tr"><span class="nm">${esc(t.name)}</span>
+        <span class="dr">${t.dir==="high"?"↑ higher wins":"↓ lower wins"}</span>
+        <button class="iconbtn" data-a="dir">⇅</button><button class="iconbtn" data-a="rm">✕</button></div>`);
+      tr.querySelector('[data-a=dir]').onclick=()=>{t.dir=t.dir==="high"?"low":"high"; drawTraits();};
+      tr.querySelector('[data-a=rm]').onclick=()=>{traits=traits.filter(x=>x.id!==t.id); drawTraits();};
+      tl.appendChild(tr);
+    });
+  }
+  drawTraits();
+  // direction selector for the new trait
+  let newDir="high";
+  const seg=body.querySelector("#newdir");
+  seg.querySelectorAll("button").forEach(b=>{
+    b.onclick=()=>{ newDir=b.dataset.d; seg.querySelectorAll("button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); };
+  });
+  body.querySelector("#addt").onclick=()=>{
+    const inp=body.querySelector("#newtrait"); const nm=inp.value.trim();
+    if(!nm){alert("Name the trait first."); return;}
+    traits.push({id:uid(), name:nm, dir:newDir});
+    inp.value=""; newDir="high";
+    seg.querySelectorAll("button").forEach(x=>x.classList.toggle("active", x.dataset.d==="high"));
+    drawTraits();
+  };
+  body.querySelector("#savedec").onclick=()=>{
+    const nm=body.querySelector("#dn").value.trim();
+    if(!nm){alert("Give your decision a name."); return;}
+    if(traits.length===0){alert("Add at least one trait."); return;}
+    d.name=nm; d.icon=icon; d.traits=traits;
+    // prune option values for removed traits
+    d.options.forEach(o=>{ Object.keys(o.values).forEach(k=>{ if(!traits.find(t=>t.id===k)) delete o.values[k]; }); });
+    if(isNew) DB.decisions.push(d);
+    save(); closeSheet(); go({name:"decision", id:d.id});
+  };
+  if(!isNew){
+    body.querySelector("#deldec").onclick=()=>{
+      if(confirm(`Delete "${d.name}" and all its options?`)){ DB.decisions=DB.decisions.filter(x=>x.id!==d.id); save(); closeSheet(); go({name:"home"}); }
+    };
+  }
+  openSheet(body);
+}
+
+/* create/edit option with trait values */
+function openOptionSheet(d, existing){
+  const o=existing||{id:uid(), name:"", values:{}};
+  const isNew=!existing;
+  const body=el(`<div><h2>${isNew?"New option":"Edit option"}</h2>
+    <label>Name</label>
+    <input type="text" id="onm" placeholder="e.g. Sushi place" value="${esc(o.name)}">
+    <label>Notes <small style="font-weight:400">(optional)</small></label>
+    <textarea id="onote" maxlength="150" placeholder="e.g. great ramen, ask for extra chili">${esc(o.note||"")}</textarea>
+    <div class="hint" id="notecount" style="text-align:right; margin-top:4px"></div>
+    <label>Rate each trait</label>
+    <div id="tv"></div>
+    <button class="btn" id="saveopt">${isNew?"Add option":"Save"}</button></div>`);
+  const noteEl=body.querySelector("#onote"); const cc=body.querySelector("#notecount");
+  const updCount=()=>cc.textContent=`${noteEl.value.length}/150`;
+  noteEl.addEventListener("input", updCount); updCount();
+  const tv=body.querySelector("#tv");
+  d.traits.forEach(t=>{
+    const cur=o.values[t.id]??"";
+    const row=el(`<div class="traitval"><div class="tn">${esc(t.name)}<small>${t.dir==="high"?"higher = better":"lower = better"}</small></div>
+      <input type="number" inputmode="decimal" data-t="${t.id}" placeholder="0–10" value="${cur}"></div>`);
+    tv.appendChild(row);
+  });
+  body.querySelector("#saveopt").onclick=()=>{
+    const nm=body.querySelector("#onm").value.trim();
+    if(!nm){alert("Name the option."); return;}
+    o.name=nm; o.note=noteEl.value.trim(); o.values={};
+    tv.querySelectorAll("input[data-t]").forEach(inp=>{
+      const v=inp.value.trim(); if(v!=="") o.values[inp.dataset.t]=parseFloat(v);
+    });
+    if(isNew) d.options.push(o);
+    save(); closeSheet(); render();
+  };
+  openSheet(body);
+}
+
+/* ---------- fab ---------- */
+function fab(label, onclick, green){
+  const b=el(`<button class="fab ${green?'green':''}">${label}</button>`);
+  b.onclick=onclick; b.id="fab"; document.body.appendChild(b);
+}
+function removeFab(){const f=document.getElementById("fab"); if(f) f.remove();}
+
+/* hook decide fab: renderDecision calls fab with go({name:"decideSelect"}) — intercept */
+const _go=go;
+go=function(r){
+  if(r && r.name==="decideSelect"){ const d=findDecision(r.id); render(); return go_decide(d); }
+  _go(r);
+};
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* seed a sample on first run so it's not empty */
+if(DB.decisions.length===0 && !localStorage.getItem(KEY+".seeded")){
+  const t1=uid(),t2=uid(),t3=uid(),t4=uid();
+  DB.decisions.push({
+    id:uid(), name:"What to eat", icon:"🍽️",
+    traits:[{id:t1,name:"Price",dir:"low"},{id:t2,name:"Time",dir:"low"},{id:t3,name:"Enjoyment",dir:"high"},{id:t4,name:"Health",dir:"high"}],
+    options:[
+      {id:uid(),name:"Sushi spot",values:{[t1]:8,[t2]:6,[t3]:9,[t4]:8}},
+      {id:uid(),name:"Home pasta",values:{[t1]:2,[t2]:5,[t3]:6,[t4]:6}},
+      {id:uid(),name:"Burger joint",values:{[t1]:5,[t2]:3,[t3]:8,[t4]:3}},
+    ]
+  });
+  localStorage.setItem(KEY+".seeded","1"); save();
+}
+
+applyTheme();
+render();
+</script>
+</body>
+</html>
